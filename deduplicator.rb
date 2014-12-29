@@ -1,12 +1,34 @@
 #!/usr/bin/ruby -w
 # zypper in ruby19-doc-ri
 # ri IO::pipe
-
+require 'dbm'
+require 'digest'
 $size_hash = {}
+
+def found_duplicate(file1, file2)
+    puts "found_duplicate #{file1} #{file2}"
+end
+
+def add_hash_to_db(dbfilename, file)
+  hashobj = Digest::SHA1.file file
+  hash = hashobj.hexdigest
+  puts "sizedup hash:#{hash} file:#{file}"
+  db = DBM.open(dbfilename, 0666, DBM::WRCREAT)
+  if db.has_key?(hash) && db[hash] != file
+    found_duplicate(file, db[hash])
+  else
+    db[hash] = file
+  end
+  db.close
+end
 
 # this function is called when we found more than one file with size size
 def add_sizedup(file, size)
-  puts "sizedup size:#{size} file:#{file}"
+  dbfilename="dup-#{size}.dbm"
+  if not File.exists?(dbfilename)
+    add_hash_to_db(dbfilename, $size_hash[size])
+  end
+  add_hash_to_db(dbfilename, file)
 end
 
 def add_file(file)
