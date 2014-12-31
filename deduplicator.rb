@@ -10,28 +10,27 @@ def found_duplicate(file1, file2)
     puts "found_duplicate #{file1} #{file2}"
 end
 
-def add_hash_to_db(dbfilename, file)
+def add_hash_to_db(db, file)
   hashobj = Digest::SHA1.file file
   hash = hashobj.hexdigest
   puts "sizedup hash:#{hash} file:#{file}"
-  db = DBM.open(dbfilename, 0666, DBM::WRCREAT)
   if db.has_key?(hash) && db[hash] != file
     found_duplicate(file, db[hash])
   else
     db[hash] = file
   end
-  db.close
 end
 
 # this function is called when we found more than one file with size size
 def add_sizedup(file, size)
   dbfilename="#{$tmpdir}/dup-#{size}.dbm"
-  if not File.exist?(dbfilename+".pag")
-    puts `ls -l #{dbfilename}*`
-    puts "#{dbfilename} not found, so dumping existing data from RAM"
-    add_hash_to_db(dbfilename, $size_hash[size])
+  db = DBM.open(dbfilename, 0666, DBM::WRCREAT)
+  if db.empty?
+    puts "#{dbfilename} was empty, so dumping existing data from RAM"
+    add_hash_to_db(db, $size_hash[size])
   end
-  add_hash_to_db(dbfilename, file)
+  add_hash_to_db(db, file)
+  db.close
 end
 
 def add_file(file)
