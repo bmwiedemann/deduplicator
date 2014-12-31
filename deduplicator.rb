@@ -4,6 +4,8 @@
 require 'dbm'
 require 'digest'
 require 'tmpdir'
+require 'json'
+
 $size_hash = {}
 
 def found_duplicate(file1, file2)
@@ -14,10 +16,15 @@ def add_hash_to_db(db, file)
   hashobj = Digest::SHA1.file file
   hash = hashobj.hexdigest
   puts "sizedup hash:#{hash} file:#{file}"
-  if db.has_key?(hash) && db[hash] != file
-    found_duplicate(file, db[hash])
+  entry = {}
+  if db.has_key?(hash)
+    entry = JSON.parse(db[hash])
+  end
+  if not entry.empty?
+    found_duplicate(file, entry.keys)
   else
-    db[hash] = file
+    entry[file] = 1
+    db[hash] = JSON.generate(entry)
   end
 end
 
