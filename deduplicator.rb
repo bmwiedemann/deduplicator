@@ -46,7 +46,7 @@ end
 find_opts = (ENV["find_opts"]||"") + " -type f -print0"
 Dir.mktmpdir("deduplicator-db-") {|dir|
   $tmpdir=dir
-  open("| find " + find_opts, 'r') do |subprocess|
+  open("| find -xdev " + find_opts, 'r') do |subprocess|
     subprocess.each("\000") do |file|
       file.chop!
       add_file(file)
