@@ -7,9 +7,32 @@ require 'tmpdir'
 require 'json'
 
 $size_hash = {}
+$ignore_filemetadata = false # owner, timestamp, permissions
 
 def found_duplicate(file1, file2)
-    puts "found_duplicate #{file1} #{file2}"
+  puts "found_duplicate #{file1} #{file2}"
+end
+
+def stat_to_hash(s)
+  return {"mtime"=>s.mtime.to_i, "mode"=>s.mode, "uid"=>s.uid, "gid"=>s.gid}
+end
+
+def metadata_match?(stathash, other)
+  other.keys.each do |k|
+    return false if stathash[k] != other[k]
+  end
+  return true
+end
+
+# go through the list of other files with same hash
+# and find those with same metadata
+def find_metadata_match(file, others)
+  return nil if others.empty?
+  stathash=stat_to_hash(File.stat(file))
+  others.keys.each do |other|
+    return other if $ignore_filemetadata or metadata_match?(stathash,others[other])
+  end
+  return nil
 end
 
 def add_hash_to_db(db, file)
@@ -20,11 +43,13 @@ def add_hash_to_db(db, file)
   if db.has_key?(hash)
     entry = JSON.parse(db[hash])
   end
-  if not entry.empty?
-    found_duplicate(file, entry.keys)
+  match = find_metadata_match(file, entry)
+  if match
+    found_duplicate(file, match)
   else
-    entry[file] = 1
+    entry[file] = stat_to_hash(File.stat(file))
     db[hash] = JSON.generate(entry)
+    puts "new db entry: #{db[hash]}"
   end
 end
 
