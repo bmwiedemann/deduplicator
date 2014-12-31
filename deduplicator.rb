@@ -7,10 +7,15 @@ require 'tmpdir'
 require 'json'
 
 $size_hash = {}
+$debug = (ENV['DEBUG'] == "1")
 $ignore_filemetadata = false # owner, timestamp, permissions
 
+def debugputs(string)
+  puts string if $debug
+end
+
 def found_duplicate(file1, file2)
-  puts "found_duplicate #{file1} #{file2}"
+  puts "ln -f '#{file1}' '#{file2}'"
 end
 
 def stat_to_hash(s)
@@ -38,7 +43,7 @@ end
 def add_hash_to_db(db, file)
   hashobj = Digest::SHA1.file file
   hash = hashobj.hexdigest
-  puts "sizedup hash:#{hash} file:#{file}"
+  debugputs "sizedup hash:#{hash} file:#{file}"
   entry = {}
   if db.has_key?(hash)
     entry = JSON.parse(db[hash])
@@ -49,7 +54,7 @@ def add_hash_to_db(db, file)
   else
     entry[file] = stat_to_hash(File.stat(file))
     db[hash] = JSON.generate(entry)
-    puts "new db entry: #{db[hash]}"
+    debugputs "new db entry: #{db[hash]}"
   end
 end
 
@@ -58,7 +63,7 @@ def add_sizedup(file, size)
   dbfilename="#{$tmpdir}/dup-#{size}.dbm"
   db = DBM.open(dbfilename, 0666, DBM::WRCREAT)
   if db.empty?
-    puts "#{dbfilename} was empty, so dumping existing data from RAM"
+    debugputs "#{dbfilename} was empty, so dumping existing data from RAM"
     add_hash_to_db(db, $size_hash[size])
   end
   add_hash_to_db(db, file)
@@ -67,7 +72,7 @@ end
 
 def add_file(file)
   size = File.stat(file).size
-  puts "size:#{size} file:#{file}"
+  debugputs "size:#{size} file:#{file}"
   if(!$size_hash[size])
     $size_hash[size]=file
   else
