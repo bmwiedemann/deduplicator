@@ -15,7 +15,7 @@ def debugputs(string)
 end
 
 def found_duplicate(file1, file2)
-  puts "ln -f '#{file1}' '#{file2}'"
+  puts "ln -f '#{file2}' '#{file1}'"
 end
 
 def stat_to_hash(s)
