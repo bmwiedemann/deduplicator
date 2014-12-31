@@ -3,6 +3,7 @@
 # ri IO::pipe
 require 'dbm'
 require 'digest'
+require 'tmpdir'
 $size_hash = {}
 
 def found_duplicate(file1, file2)
@@ -24,8 +25,10 @@ end
 
 # this function is called when we found more than one file with size size
 def add_sizedup(file, size)
-  dbfilename="dup-#{size}.dbm"
-  if not File.exists?(dbfilename)
+  dbfilename="#{$tmpdir}/dup-#{size}.dbm"
+  if not File.exist?(dbfilename+".pag")
+    puts `ls -l #{dbfilename}*`
+    puts "#{dbfilename} not found, so dumping existing data from RAM"
     add_hash_to_db(dbfilename, $size_hash[size])
   end
   add_hash_to_db(dbfilename, file)
@@ -42,10 +45,13 @@ def add_file(file)
 end
 
 find_opts = (ENV["find_opts"]||"") + " -type f -print0"
-open("| find " + find_opts, 'r') do |subprocess|
-  subprocess.each("\000") do |file|
-    file.chop!
-    add_file(file)
+Dir.mktmpdir("deduplicator-db-") {|dir|
+  $tmpdir=dir
+  open("| find " + find_opts, 'r') do |subprocess|
+    subprocess.each("\000") do |file|
+      file.chop!
+      add_file(file)
+    end
   end
-end
+}
 
