@@ -1,6 +1,7 @@
 #!/usr/bin/ruby -w
-# zypper in ruby19-doc-ri
-# ri IO::pipe
+# Copyright 2014 Bernhard M. Wiedemann
+# Licensed under the GNU General Public License Version 2 (see LICENSE file)
+
 require 'dbm'
 require 'digest'
 require 'tmpdir'
