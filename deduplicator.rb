@@ -6,6 +6,7 @@ require 'dbm'
 require 'digest'
 require 'tmpdir'
 require 'json'
+require 'shellwords'
 
 $size_hash = {}
 $debug = (ENV['DEBUG'] == "1")
@@ -16,7 +17,7 @@ def debugputs(string)
 end
 
 def found_duplicate(file1, file2)
-  puts "ln -f '#{file2}' '#{file1}'"
+  puts "ln -f #{file2.shellescape} #{file1.shellescape}"
 end
 
 def stat_to_hash(s)
