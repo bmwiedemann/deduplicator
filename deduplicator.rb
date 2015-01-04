@@ -10,7 +10,7 @@ require 'shellwords'
 
 $size_hash = {}
 $debug = (ENV['DEBUG'] == "1")
-$ignore_filemetadata = false # owner, timestamp, permissions
+$ignore_filemetadata = (ENV['IGNOREMETA'] == "1") # owner, timestamp, permissions
 
 def debugputs(string)
   puts string if $debug
