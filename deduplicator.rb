@@ -16,8 +16,18 @@ def debugputs(string)
   puts string if $debug
 end
 
+def have_different_owners(file1, file2)
+  s1 = File.stat(file1)
+  s2 = File.stat(file2)
+  return s1.uid != s2.uid
+end
+
 def found_duplicate(file1, file2)
-  puts "ln -f #{file2.shellescape} #{file1.shellescape}"
+  extra = ""
+  if $ignore_filemetadata and have_different_owners(file1, file2)
+    extra = " ; chmod 444 \"$_\" ; chown root. \"$_\""
+  end
+  puts "ln -f #{file2.shellescape} #{file1.shellescape}#{extra}"
 end
 
 def stat_to_hash(s)
