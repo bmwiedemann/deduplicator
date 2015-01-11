@@ -92,14 +92,11 @@ def add_file(file)
   end
 end
 
-find_opts = (ENV["find_opts"]||"") + " -type f -print0"
 Dir.mktmpdir("deduplicator-db-") {|dir|
   $tmpdir=dir
-  open("| find -xdev " + find_opts, 'r') do |subprocess|
-    subprocess.each("\000") do |file|
-      file.chomp!("\000")
-      add_file(file)
-    end
+  ARGF.each("\000") do |file|
+    file.chomp!("\000")
+    add_file(file)
   end
 }
 
