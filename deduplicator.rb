@@ -97,7 +97,7 @@ Dir.mktmpdir("deduplicator-db-") {|dir|
   $tmpdir=dir
   open("| find -xdev " + find_opts, 'r') do |subprocess|
     subprocess.each("\000") do |file|
-      file.chop!
+      file.chomp!("\000")
       add_file(file)
     end
   end
